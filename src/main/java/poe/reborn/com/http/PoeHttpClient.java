@@ -12,4 +12,5 @@ public abstract class PoeHttpClient<P> {
     protected HttpClient httpClient;
     public abstract String getHtmlResponse(P arg);
     public abstract int getFileSize();
+    public abstract String getContent();
 }

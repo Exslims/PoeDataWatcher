@@ -6,9 +6,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Exslims
@@ -21,12 +25,18 @@ public class HttpRequestManager extends Thread {
     @Qualifier("poeApiHttpClient")
     private PoeHttpClient<String> httpClient;
 
+    private PrintWriter writer;
     private List<Integer> listOfFileSize;
     private long sizeOfAllReceiveData = 0;
 
     @Override
     public void run() {
         String nextChangeId = "";
+        try {
+            writer = new PrintWriter(new File("reports.txt"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         listOfFileSize = Collections.synchronizedList(new ArrayList<>());
         while (true) {
             String content = httpClient.getHtmlResponse(nextChangeId);
@@ -36,11 +46,16 @@ public class HttpRequestManager extends Thread {
             listOfFileSize.add(fileSize);
 
             nextChangeId = StringUtils.substringBetween(content, "next_change_id\":\"", "\",\"stashes\"");
+            writer.println("Next change id = " + nextChangeId + "\n");
+            writer.println("Chunk of content:" + "\n");
+            writer.println(StringUtils.substringsBetween(content,"{","}")[0] + "\n");
+            writer.flush();
+
             if(content.contains("exslims")){
                 System.out.println("Found EXSLIMS");
             }
             try {
-                Thread.sleep(1000);
+                Thread.sleep(new Random().nextInt(3)*1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

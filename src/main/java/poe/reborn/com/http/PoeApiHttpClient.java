@@ -20,6 +20,7 @@ import java.util.zip.GZIPInputStream;
 @Scope("prototype")
 public class PoeApiHttpClient extends PoeHttpClient<String> {
     private int fileSize;
+    private String requestContent = "";
 
     @Override
     public String getHtmlResponse(String arg) {
@@ -54,6 +55,7 @@ public class PoeApiHttpClient extends PoeHttpClient<String> {
                 fileSize = content.length();
             }
             defaultHttpClient.getConnectionManager().shutdown();
+            requestContent = content;
             return content;
         } catch (IOException e) {
             e.printStackTrace();
@@ -65,6 +67,11 @@ public class PoeApiHttpClient extends PoeHttpClient<String> {
     @Override
     public int getFileSize() {
         return fileSize / 1024;
+    }
+
+    @Override
+    public String getContent() {
+        return requestContent;
     }
 
     static class GzipDecompressingEntity extends HttpEntityWrapper {
