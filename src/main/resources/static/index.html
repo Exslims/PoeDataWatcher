@@ -11,14 +11,14 @@
 <body>
     <h1 id="fullSize">Full Size = </h1>
     <div id="chart_div"></div>
+    <h1 id="requestCount">Request count = </h1>
 </body>
 <script>
     google.charts.load('current', {'packages':['line']});
     google.charts.setOnLoadCallback(drawChart);
 
-    var rowIndex = 0;
+    var requestCount = 0;
     var dataN;
-    var requestNumber = 0;
     var options = {
         width: 1400,
         height: 340,
@@ -26,6 +26,9 @@
         animation: {
             duration: 1000,
             easing: 'in'
+        },
+        hAxis: {
+            format: 'hh:mm:ss'
         }
     };
 
@@ -38,8 +41,9 @@
         getNextSizeRequesT.onreadystatechange = function () {
             if (getNextSizeRequesT.readyState == 4 && getNextSizeRequesT.status == 200) {
                 var str = JSON.parse(getNextSizeRequesT.responseText);
+                requestCount++;
+                document.getElementById("requestCount").textContent="Request count = " + requestCount;
                 if(str.length > 0) {
-                    rowIndex++;
                     addNewValue(str);
                 }
             }
@@ -64,11 +68,11 @@
         }else setUpRequests();
     }
 
-    setInterval(executeRequests,2000);
+    setInterval(executeRequests,10000);
 
     function drawChart() {
         var data = new google.visualization.DataTable();
-        data.addColumn('number', 'Request number');
+        data.addColumn('string', 'Time line');
         data.addColumn('number', 'File Size in KB');
 
         dataN = data;
@@ -77,12 +81,19 @@
     }
 
     function addNewValue(value){
+        var chart = new google.charts.Line(document.getElementById('chart_div'));
         for(var i = 0; i < value.length; i++){
             var intValue = parseInt(value[i]);
-            var chart = new google.charts.Line(document.getElementById('chart_div'));
-            dataN.addRow([rowIndex,intValue]);
-            chart.draw(dataN,options);
+            var date = new Date();
+            var hours = date.getHours();
+            var minutes = date.getMinutes();
+            var seconds = date.getSeconds();
+
+            var resultTime = hours + ":" + minutes + ":" + seconds;
+
+            dataN.addRow([resultTime,intValue]);
         }
+        chart.draw(dataN,options);
     }
 </script>
 </html>

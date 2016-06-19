@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,7 +27,7 @@ public class HttpRequestManager extends Thread {
     @Override
     public void run() {
         String nextChangeId = "";
-        listOfFileSize = new ArrayList<>();
+        listOfFileSize = Collections.synchronizedList(new ArrayList<>());
         while (true) {
             String content = httpClient.getHtmlResponse(nextChangeId);
 
