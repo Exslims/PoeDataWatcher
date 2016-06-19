@@ -2,26 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <title>Title</title>
 </head>
 <body>
-    <h1 id="testId">TEST</h1>
+    <h1 id="fullSize">Full Size = </h1>
+    <div id="chart_div"></div>
 </body>
 <script>
-    var xmlhttp = new XMLHttpRequest();
-    var url = "/getEntity";
+    google.charts.load('current', {'packages':['line']});
+    google.charts.setOnLoadCallback(drawChart);
 
-    xmlhttp.onreadystatechange = function(){
-        if(xmlhttp.readyState == 4 && xmlhttp.status == 200){
-            var str = JSON.parse(xmlhttp.responseText);
-            test(str);
+    var rowIndex = 0;
+    var dataN;
+    var requestNumber = 0;
+    var options = {
+        width: 1400,
+        height: 340,
+        vAxis: {minValue:0, maxValue:900},
+        animation: {
+            duration: 1000,
+            easing: 'in'
         }
-    }
-    xmlhttp.open("GET",url,true);
-    xmlhttp.send();
+    };
 
-    function test(str){
-        document.getElementById("testId").innerText = str;
+    var getNextSizeRequest;
+    var getFullSizeRequest;
+
+    function setUpRequests() {
+        var getNextSizeRequesT = new XMLHttpRequest();
+
+        getNextSizeRequesT.onreadystatechange = function () {
+            if (getNextSizeRequesT.readyState == 4 && getNextSizeRequesT.status == 200) {
+                var str = JSON.parse(getNextSizeRequesT.responseText);
+                if(str.length > 0) {
+                    rowIndex++;
+                    addNewValue(str);
+                }
+            }
+        };
+        getNextSizeRequest = getNextSizeRequesT;
+
+        var getFullSizeRequesT = new XMLHttpRequest();
+        getFullSizeRequesT.onreadystatechange = function (){
+            if (getFullSizeRequesT.readyState == 4 && getFullSizeRequesT.status == 200) {
+                document.getElementById("fullSize").textContent="Full Size = " + JSON.parse(getFullSizeRequesT.responseText) + " KB";
+            }
+        };
+        getFullSizeRequest = getFullSizeRequesT;
+    }
+
+    function executeRequests(){
+        if(getFullSizeRequest && getNextSizeRequest) {
+            getNextSizeRequest.open("GET", "/nextFilesSize", true);
+            getNextSizeRequest.send();
+            getFullSizeRequest.open("GET", "/fullSize",true);
+            getFullSizeRequest.send();
+        }else setUpRequests();
+    }
+
+    setInterval(executeRequests,2000);
+
+    function drawChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('number', 'Request number');
+        data.addColumn('number', 'File Size in KB');
+
+        dataN = data;
+        var chart = new google.charts.Line(document.getElementById('chart_div'));
+        chart.draw(data, options);
+    }
+
+    function addNewValue(value){
+        for(var i = 0; i < value.length; i++){
+            var intValue = parseInt(value[i]);
+            var chart = new google.charts.Line(document.getElementById('chart_div'));
+            dataN.addRow([rowIndex,intValue]);
+            chart.draw(dataN,options);
+        }
     }
 </script>
 </html>
