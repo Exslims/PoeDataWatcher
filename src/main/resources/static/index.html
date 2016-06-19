@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1 id="testId">TEST</h1>
+</body>
+<script>
+    var xmlhttp = new XMLHttpRequest();
+    var url = "/getEntity";
+
+    xmlhttp.onreadystatechange = function(){
+        if(xmlhttp.readyState == 4 && xmlhttp.status == 200){
+            var str = JSON.parse(xmlhttp.responseText);
+            test(str);
+        }
+    }
+    xmlhttp.open("GET",url,true);
+    xmlhttp.send();
+
+    function test(str){
+        document.getElementById("testId").innerText = str;
+    }
+</script>
+</html>
